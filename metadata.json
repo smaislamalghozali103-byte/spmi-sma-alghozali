@@ -1,0 +1,8 @@
+{
+  "name": "Remix: SPMI SMA Islam Al-Ghozali 2026",
+  "description": "Dokumen Sistem Penjaminan Mutu Internal (SPMI) SMA Islam Al-Ghozali tahun 2026.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
