@@ -1,3 +1,4 @@
+import { Building2 } from 'lucide-react';
 import { SPMIData } from "../types";
 
 export const SchoolIdentityForm = ({
@@ -26,19 +27,26 @@ export const SchoolIdentityForm = ({
   };
   
   return (
-    <div className="space-y-4 p-6 bg-gray-50 rounded-lg">
-      <h2 className="text-xl font-semibold">Identitas & Data SPMI</h2>
+    <section className="space-y-5 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+      <div><h2 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Building2 className="w-5 h-5 text-emerald-700" /> Profil sekolah</h2><p className="text-sm text-slate-500 mt-1">Data ini otomatis dipakai pada seluruh dokumen yang dihasilkan.</p></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {fields.map(field => (
-        <div key={field}>
-          <input
-            placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+        <label key={field} className={['visi', 'misi', 'programUnggulan', 'masalahUtama', 'dataSiswaJuli2025'].includes(field) ? 'md:col-span-2' : ''}>
+          <span className="mb-1.5 block text-xs font-bold text-slate-700">{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}</span>
+          {['visi', 'misi', 'programUnggulan', 'masalahUtama', 'dataSiswaJuli2025'].includes(field) ? <textarea
+            rows={3}
+            placeholder={helpers[field]}
             value={identity[field]}
             onChange={(e) => onChange({ ...identity, [field]: e.target.value })}
-            className="w-full p-2 border rounded"
-          />
-          <p className="text-xs text-gray-500 mt-1">{helpers[field]}</p>
-        </div>
+            className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600"
+          /> : <input
+            placeholder={helpers[field]}
+            value={identity[field]}
+            onChange={(e) => onChange({ ...identity, [field]: e.target.value })}
+            className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600"
+          />}
+        </label>
       ))}
-    </div>
+      </div></section>
   );
 };
