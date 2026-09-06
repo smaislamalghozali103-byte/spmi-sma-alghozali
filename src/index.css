@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@layer base {
+  body { @apply bg-slate-50 text-slate-800 antialiased; }
+  button, input, textarea, select { font: inherit; }
+}
+
+.spmi-header {
+  background: radial-gradient(circle at 88% 18%, rgba(167, 243, 208, .8), transparent 30%), linear-gradient(120deg, #ecfdf5 0%, #f8fafc 58%, #eff6ff 100%);
+}

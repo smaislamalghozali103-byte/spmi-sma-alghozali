@@ -12,8 +12,8 @@ import { TemplateEditor } from './components/TemplateEditor';
 import { SPMIKnowledgeBase } from './components/SPMIKnowledgeBase';
 import { ALL_TEMPLATE_IDS } from './constants';
 import { generateZip } from './utils/zipUtils';
-import { BookOpen, FileSpreadsheet, FolderClosed, CloudUpload, LogOut } from 'lucide-react';
-import { initAuth, googleSignIn, logout, getAccessToken } from './lib/driveAuth';
+import { BookOpen, FileSpreadsheet, FolderClosed, CloudUpload, LogOut, Download, Sparkles, CheckCircle2 } from 'lucide-react';
+import { initAuth, googleSignIn, logout } from './lib/driveAuth';
 import { saveToDrive } from './lib/driveService';
 
 export default function App() {
@@ -40,15 +40,27 @@ export default function App() {
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    initAuth(
+    const unsubscribe = initAuth(
       () => setIsAuthenticated(true),
       () => setIsAuthenticated(false)
     );
+    const savedIdentity = localStorage.getItem('spmi_identity');
+    const savedTemplates = localStorage.getItem('spmi_templates');
+    try {
+      if (savedIdentity) setIdentity(JSON.parse(savedIdentity));
+      if (savedTemplates) setCustomTemplates(JSON.parse(savedTemplates));
+    } catch {
+      localStorage.removeItem('spmi_identity');
+      localStorage.removeItem('spmi_templates');
+    }
+    return unsubscribe;
   }, []);
 
   const handleSaveToDrive = async () => {
     if (!isAuthenticated) {
-      await googleSignIn();
+      const signInResult = await googleSignIn();
+      if (!signInResult) return;
+      setIsAuthenticated(true);
     }
     
     setIsUploading(true);
@@ -82,17 +94,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       {/* Header Panel */}
-      <div className="max-w-7xl mx-auto mb-8 bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="max-w-7xl mx-auto mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="spmi-header p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Sistem Penjaminan Mutu Internal</span>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight mt-1">PAKET DOKUMEN INTEGRASI SPMI 2026</h1>
-          <p className="text-xs text-gray-500 mt-1">{identity.namaSekolah} — {identity.yayasan}</p>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-800 bg-white/70 px-3 py-1.5 rounded-full"><Sparkles className="w-3.5 h-3.5" /> Sistem Penjaminan Mutu Internal</span>
+          <h1 className="text-2xl md:text-4xl font-bold text-slate-950 tracking-tight mt-3">Ruang Kerja Mutu 2026</h1>
+          <p className="text-sm text-slate-600 mt-2">{identity.namaSekolah} <span className="mx-1 text-emerald-600">•</span> {identity.yayasan}</p>
         </div>
         
         {/* Tab Navigator */}
-        <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200 self-start md:self-auto">
+        <div className="flex bg-white/70 p-1.5 rounded-xl border border-white/80 self-start md:self-auto shadow-sm">
           <button
             onClick={() => setActiveTab('documents')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-semibold transition ${activeTab === 'documents' ? 'bg-white text-gray-950 shadow-sm font-bold' : 'text-gray-500 hover:text-gray-950'}`}
@@ -108,18 +121,18 @@ export default function App() {
             Pusat Referensi &amp; Pengetahuan
           </button>
         </div>
-      </div>
+      </div></header>
 
       <div className="max-w-7xl mx-auto">
         {activeTab === 'documents' ? (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              <div className="lg:col-span-1 bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <aside className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-2 pb-3 mb-4 border-b border-gray-100">
                   <FolderClosed className="w-5 h-5 text-indigo-600" />
                   <h3 className="font-bold text-gray-800 text-sm">Daftar Buku &amp; Dokumen</h3>
                 </div>
-                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                <div className="space-y-4 max-h-[620px] overflow-y-auto pr-1">
                   {Object.entries(volumes).map(([volName, docs]) => (
                     <div key={volName} className="space-y-1">
                       <h4 className="font-bold text-xs text-gray-400 tracking-wider uppercase">{volName}</h4>
@@ -141,14 +154,14 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </aside>
 
               <div className="lg:col-span-3">
                 <DocumentPreviewer identity={identity} templateId={activeDoc} customTemplates={customTemplates} />
               </div>
             </div>
             
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-4">
                 <SchoolIdentityForm identity={identity} onChange={setIdentity} />
                 <div className="grid grid-cols-2 gap-2">
@@ -158,8 +171,9 @@ export default function App() {
                       localStorage.setItem('spmi_templates', JSON.stringify(customTemplates));
                       alert('Data berhasil disimpan ke penyimpanan lokal.');
                     }}
-                    className="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+                    className="w-full py-3 flex items-center justify-center gap-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition"
                   >
+                    <CheckCircle2 className="w-4 h-4" />
                     Simpan Lokal
                   </button>
                   <button
@@ -184,8 +198,12 @@ export default function App() {
                     Keluar dari Google Drive
                   </button>
                 )}
+                <TemplateEditor identity={identity} customTemplates={customTemplates} setCustomTemplates={setCustomTemplates} />
               </div>
               <div className="lg:col-span-1">
+                <button onClick={handleGenerate} className="mb-4 w-full rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 flex items-center justify-center gap-2">
+                  <Download className="w-4 h-4" /> Siapkan semua dokumen (.zip)
+                </button>
                 <FolderStructure 
                   generatedFolders={generatedFolders.length === 0 ? [activeDoc] : generatedFolders} 
                   identity={identity} 
